@@ -1,0 +1,3 @@
+server/*
+composer.lock
+composer.phar
