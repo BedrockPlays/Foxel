@@ -1,3 +1,4 @@
 server/*
 composer.lock
 composer.phar
+.idea/*
