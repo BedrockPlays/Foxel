@@ -149,8 +149,8 @@ class NetworkBinaryStream extends BinaryStream {
 		$this->putString($skin->getFullSkinId());
 
 		if($this->protocolVersion >= ProtocolInfo::PROTOCOL_1_14_60) {
-            $this->putString(''); //ArmSize
-            $this->putString(''); //SkinColor
+            $this->putString(""); //ArmSize
+            $this->putString(""); //SkinColor
             $this->putLInt(0);   //Persona Pieces -> more info to come
             $this->putLInt(0);	//PieceTintColors -> more info to come
         }

@@ -1687,8 +1687,8 @@ class Server{
 	 *
 	 * @return void
 	 */
-	public function broadcastPacket(array $players, DataPacket $packet){
-		$packet->encode();
+	public function broadcastPacket(array $players, DataPacket $packet) {
+//		$packet->encode(); // batchPackets method will encode packet with multiprotocol
 		$this->batchPackets($players, [$packet], false);
 	}
 
