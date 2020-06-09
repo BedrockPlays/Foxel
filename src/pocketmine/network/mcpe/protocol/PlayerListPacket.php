@@ -67,14 +67,11 @@ class PlayerListPacket extends DataPacket{
 
 			$this->entries[$i] = $entry;
 		}
-
-		if($this->protocolVersion >= ProtocolInfo::PROTOCOL_1_14_60 and !$this->feof()) {
-            if($this->type === self::TYPE_ADD){
-                for($i = 0; $i < $count; ++$i){
-                    $this->getBool();
-                }
-            }
-        }
+		if($this->protocol > ProtocolInfo::PROTOCOL_1_14 && $this->type === self::TYPE_ADD){
+			for($i = 0; $i < $count; ++$i){
+				$this->entries[$i]->skinData->setVerified($this->getBool());
+			}
+		}
 	}
 
 	protected function encodePayload(){
@@ -95,12 +92,11 @@ class PlayerListPacket extends DataPacket{
 				$this->putUUID($entry->uuid);
 			}
 		}
-
-        if($this->protocolVersion >= ProtocolInfo::PROTOCOL_1_14_60 and $this->type === self::TYPE_ADD) {
-            foreach ($this->entries as $entry) {
-                $this->putBool(true);
-            }
-        }
+		if($this->protocol > ProtocolInfo::PROTOCOL_1_14 && $this->type === self::TYPE_ADD) {
+			foreach($this->entries as $entry){
+				$this->putBool($entry->skinData->isVerified());
+			}
+		}
 	}
 
 	public function handle(NetworkSession $session) : bool{

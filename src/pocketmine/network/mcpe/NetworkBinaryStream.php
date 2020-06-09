@@ -38,22 +38,27 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\CommandOriginData;
 use pocketmine\network\mcpe\protocol\types\EntityLink;
+use pocketmine\network\mcpe\protocol\types\GameRuleType;
+use pocketmine\network\mcpe\protocol\types\PersonaPieceTintColor;
+use pocketmine\network\mcpe\protocol\types\PersonaSkinPiece;
 use pocketmine\network\mcpe\protocol\types\SkinAnimation;
 use pocketmine\network\mcpe\protocol\types\SkinData;
 use pocketmine\network\mcpe\protocol\types\SkinImage;
+use pocketmine\network\mcpe\protocol\types\StructureEditorData;
 use pocketmine\network\mcpe\protocol\types\StructureSettings;
+use pocketmine\Server;
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\UUID;
 use function count;
 use function strlen;
 
-class NetworkBinaryStream extends BinaryStream {
+class NetworkBinaryStream extends BinaryStream{
 
 	private const DAMAGE_TAG = "Damage"; //TAG_Int
 	private const DAMAGE_TAG_CONFLICT_RESOLUTION = "___Damage_ProtocolCollisionResolution___";
 
-	/** @var int $protocolVersion */
-	public $protocolVersion = ProtocolInfo::CURRENT_PROTOCOL;
+	/** @var int $protocol */
+	public $protocol = ProtocolInfo::CURRENT_PROTOCOL;
 
 	public function getString() : string{
 		return $this->get($this->getUnsignedVarInt());
@@ -94,6 +99,7 @@ class NetworkBinaryStream extends BinaryStream {
 				$animationFrames = $this->getLFloat()
 			);
 		}
+
 		$capeData = $this->getSkinImage();
 		$geometryData = $this->getString();
 		$animationData = $this->getString();
@@ -103,27 +109,43 @@ class NetworkBinaryStream extends BinaryStream {
 		$capeId = $this->getString();
 		$fullSkinId = $this->getString();
 
-		if($this->protocolVersion >= ProtocolInfo::PROTOCOL_1_14_60) {
-		    $this->getString();
-		    $this->getString();
+        $armSize = "";
+        $skinColor = "";
+        $personaPieces = [];
+        $pieceTintColors = [];
 
-		    for($i = 0, $j = $this->getLInt(); $i < $j; $i++) {
-                $this->getString();
-                $this->getString();
-                $this->getString();
-                $this->getBool();
-                $this->getString();
+        // Decoding only for 1.14.60+
+		if($this->protocol > ProtocolInfo::PROTOCOL_1_14) {
+            $armSize = $this->getString();
+            $skinColor = $this->getString();
+            $personaPieceCount = $this->getLInt();
+            $personaPieces = [];
+            for($i = 0; $i < $personaPieceCount; ++$i){
+                $personaPieces[] = new PersonaSkinPiece(
+                    $pieceId = $this->getString(),
+                    $pieceType = $this->getString(),
+                    $packId = $this->getString(),
+                    $isDefaultPiece = $this->getBool(),
+                    $productId = $this->getString()
+                );
             }
-
-            for($i = 0, $j = $this->getLInt(); $i < $j; $i++) {
-                $this->getString();
-                for($k = 0, $l = $this->getLInt(); $k < $l; $k++) {
-                    $this->getString();
+            $pieceTintColorCount = $this->getLInt();
+            $pieceTintColors = [];
+            for($i = 0; $i < $pieceTintColorCount; ++$i){
+                $pieceType = $this->getString();
+                $colorCount = $this->getLInt();
+                $colors = [];
+                for($j = 0; $j < $colorCount; ++$j){
+                    $colors[] = $this->getString();
                 }
+                $pieceTintColors[] = new PersonaPieceTintColor(
+                    $pieceType,
+                    $colors
+                );
             }
         }
 
-		return new SkinData($skinId, $skinResourcePatch, $skinData, $animations, $capeData, $geometryData, $animationData, $premium, $persona, $capeOnClassic, $capeId, $fullSkinId);
+		return new SkinData($skinId, $skinResourcePatch, $skinData, $animations, $capeData, $geometryData, $animationData, $premium, $persona, $capeOnClassic, $capeId, $fullSkinId, $armSize, $skinColor, $personaPieces, $pieceTintColors);
 	}
 
 	/**
@@ -148,11 +170,25 @@ class NetworkBinaryStream extends BinaryStream {
 		$this->putString($skin->getCapeId());
 		$this->putString($skin->getFullSkinId());
 
-		if($this->protocolVersion >= ProtocolInfo::PROTOCOL_1_14_60) {
-            $this->putString(""); //ArmSize
-            $this->putString(""); //SkinColor
-            $this->putLInt(0);   //Persona Pieces -> more info to come
-            $this->putLInt(0);	//PieceTintColors -> more info to come
+		if($this->protocol > ProtocolInfo::PROTOCOL_1_14) {
+            $this->putString($skin->getArmSize());
+            $this->putString($skin->getSkinColor());
+            $this->putLInt(count($skin->getPersonaPieces()));
+            foreach($skin->getPersonaPieces() as $piece){
+                $this->putString($piece->getPieceId());
+                $this->putString($piece->getPieceType());
+                $this->putString($piece->getPackId());
+                $this->putBool($piece->isDefaultPiece());
+                $this->putString($piece->getProductId());
+            }
+            $this->putLInt(count($skin->getPieceTintColors()));
+            foreach($skin->getPieceTintColors() as $tint){
+                $this->putString($tint->getPieceType());
+                $this->putLInt(count($tint->getColors()));
+                foreach($tint->getColors() as $color){
+                    $this->putString($color);
+                }
+            }
         }
 	}
 
@@ -529,9 +565,9 @@ class NetworkBinaryStream extends BinaryStream {
 	 */
 	public function getVector3() : Vector3{
 		return new Vector3(
-			$this->getRoundedLFloat(4),
-			$this->getRoundedLFloat(4),
-			$this->getRoundedLFloat(4)
+			$this->getLFloat(),
+			$this->getLFloat(),
+			$this->getLFloat()
 		);
 	}
 
@@ -585,13 +621,13 @@ class NetworkBinaryStream extends BinaryStream {
 			$type = $this->getUnsignedVarInt();
 			$value = null;
 			switch($type){
-				case 1:
+				case GameRuleType::BOOL:
 					$value = $this->getBool();
 					break;
-				case 2:
+				case GameRuleType::INT:
 					$value = $this->getUnsignedVarInt();
 					break;
-				case 3:
+				case GameRuleType::FLOAT:
 					$value = $this->getLFloat();
 					break;
 			}
@@ -615,13 +651,13 @@ class NetworkBinaryStream extends BinaryStream {
 			$this->putString($name);
 			$this->putUnsignedVarInt($rule[0]);
 			switch($rule[0]){
-				case 1:
+				case GameRuleType::BOOL:
 					$this->putBool($rule[1]);
 					break;
-				case 2:
+				case GameRuleType::INT:
 					$this->putUnsignedVarInt($rule[1]);
 					break;
-				case 3:
+				case GameRuleType::FLOAT:
 					$this->putLFloat($rule[1]);
 					break;
 			}
@@ -654,7 +690,7 @@ class NetworkBinaryStream extends BinaryStream {
 		$result->requestId = $this->getString();
 
 		if($result->type === CommandOriginData::ORIGIN_DEV_CONSOLE or $result->type === CommandOriginData::ORIGIN_TEST){
-			$result->varlong1 = $this->getVarLong();
+			$result->playerEntityUniqueId = $this->getVarLong();
 		}
 
 		return $result;
@@ -666,7 +702,7 @@ class NetworkBinaryStream extends BinaryStream {
 		$this->putString($data->requestId);
 
 		if($data->type === CommandOriginData::ORIGIN_DEV_CONSOLE or $data->type === CommandOriginData::ORIGIN_TEST){
-			$this->putVarLong($data->varlong1);
+			$this->putVarLong($data->playerEntityUniqueId);
 		}
 	}
 
@@ -686,6 +722,7 @@ class NetworkBinaryStream extends BinaryStream {
 		$result->mirror = $this->getByte();
 		$result->integrityValue = $this->getFloat();
 		$result->integritySeed = $this->getInt();
+		$result->pivot = $this->getVector3();
 
 		return $result;
 	}
@@ -704,5 +741,34 @@ class NetworkBinaryStream extends BinaryStream {
 		$this->putByte($structureSettings->mirror);
 		$this->putFloat($structureSettings->integrityValue);
 		$this->putInt($structureSettings->integritySeed);
+		$this->putVector3($structureSettings->pivot);
+	}
+
+	protected function getStructureEditorData() : StructureEditorData{
+		$result = new StructureEditorData();
+
+		$result->structureName = $this->getString();
+		$result->structureDataField = $this->getString();
+
+		$result->includePlayers = $this->getBool();
+		$result->showBoundingBox = $this->getBool();
+
+		$result->structureBlockType = $this->getVarInt();
+		$result->structureSettings = $this->getStructureSettings();
+		$result->structureRedstoneSaveMove = $this->getVarInt();
+
+		return $result;
+	}
+
+	protected function putStructureEditorData(StructureEditorData $structureEditorData) : void{
+		$this->putString($structureEditorData->structureName);
+		$this->putString($structureEditorData->structureDataField);
+
+		$this->putBool($structureEditorData->includePlayers);
+		$this->putBool($structureEditorData->showBoundingBox);
+
+		$this->putVarInt($structureEditorData->structureBlockType);
+		$this->putStructureSettings($structureEditorData->structureSettings);
+		$this->putVarInt($structureEditorData->structureRedstoneSaveMove);
 	}
 }

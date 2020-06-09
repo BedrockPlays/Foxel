@@ -13,6 +13,7 @@ return array(
     'ClassCastException' => $vendorDir . '/pocketmine/spl/src/ClassCastException.php',
     'ClassLoader' => $vendorDir . '/pocketmine/classloader/src/ClassLoader.php',
     'ClassNotFoundException' => $vendorDir . '/pocketmine/spl/src/ClassNotFoundException.php',
+    'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'InvalidArgumentCountException' => $vendorDir . '/pocketmine/spl/src/InvalidArgumentCountException.php',
     'InvalidKeyException' => $vendorDir . '/pocketmine/spl/src/InvalidKeyException.php',
     'InvalidStateException' => $vendorDir . '/pocketmine/spl/src/InvalidStateException.php',

@@ -45,5 +45,10 @@
          "src/pocketmine/GlobalConstants.php",
          "src/pocketmine/VersionInfo.php"
       ]
+   },
+   "autoload-dev": {
+      "psr-4": {
+         "pocketmine\\": "tests/phpunit/"
+      }
    }
 }

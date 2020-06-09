@@ -59,7 +59,6 @@ class Bow extends Tool{
 			($player->yaw > 180 ? 360 : 0) - $player->yaw,
 			-$player->pitch
 		);
-		$nbt->setShort("Fire", $player->isOnFire() ? 45 * 60 : 0);
 
 		$diff = $player->getItemUseDuration();
 		$p = $diff / 20;
@@ -84,7 +83,7 @@ class Bow extends Tool{
 			}
 			$ev = new EntityShootBowEvent($player, $this, $entity, $baseForce * 3);
 
-			if($baseForce < 0.1 or $diff < 5){
+			if($baseForce < 0.1 or $diff < 5 or $player->isSpectator()){
 				$ev->setCancelled();
 			}
 

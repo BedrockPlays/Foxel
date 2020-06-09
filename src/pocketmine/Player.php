@@ -146,6 +146,9 @@ use pocketmine\network\mcpe\protocol\types\CommandEnum;
 use pocketmine\network\mcpe\protocol\types\CommandParameter;
 use pocketmine\network\mcpe\protocol\types\ContainerIds;
 use pocketmine\network\mcpe\protocol\types\DimensionIds;
+use pocketmine\network\mcpe\protocol\types\GameMode;
+use pocketmine\network\mcpe\protocol\types\PersonaPieceTintColor;
+use pocketmine\network\mcpe\protocol\types\PersonaSkinPiece;
 use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
 use pocketmine\network\mcpe\protocol\types\SkinAdapterSingleton;
 use pocketmine\network\mcpe\protocol\types\SkinAnimation;
@@ -214,6 +217,8 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	public const SPECTATOR = 3;
 	public const VIEW = Player::SPECTATOR;
 
+	private const RESOURCE_PACK_CHUNK_SIZE = 128 * 1024; //128KB
+
 	/**
 	 * Validates the given username.
 	 */
@@ -259,6 +264,11 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	/** @var bool */
 	public $loggedIn = false;
 
+	/** @var int $protocol */
+	public $protocol = ProtocolInfo::CURRENT_PROTOCOL;
+
+	/** @var bool */
+	private $seenLoginPacket = false;
 	/** @var bool */
 	private $resourcePacksDone = false;
 
@@ -370,9 +380,6 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	protected $lastRightClickTime = 0.0;
 	/** @var Vector3|null */
 	protected $lastRightClickPos = null;
-
-	/** @var int $protocol */
-	protected $protocol = ProtocolInfo::CURRENT_PROTOCOL;
 
 	/**
 	 * @return TranslationContainer|string
@@ -766,6 +773,13 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	public function isConnected() : bool{
 		return $this->sessionAdapter !== null;
 	}
+
+    /**
+     * @return int
+     */
+	public function getProtocol(): int {
+	    return $this->protocol;
+    }
 
 	/**
 	 * Gets the username
@@ -1328,12 +1342,13 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	 * TODO: remove this when Spectator Mode gets added properly to MCPE
 	 */
 	public static function getClientFriendlyGamemode(int $gamemode) : int{
-		$gamemode &= 0x03;
-		if($gamemode === Player::SPECTATOR){
-			return Player::CREATIVE;
-		}
-
-		return $gamemode;
+		static $map = [
+			self::SURVIVAL => GameMode::SURVIVAL,
+			self::CREATIVE => GameMode::CREATIVE,
+			self::ADVENTURE => GameMode::ADVENTURE,
+			self::SPECTATOR => GameMode::CREATIVE
+		];
+		return $map[$gamemode & 0x3];
 	}
 
 	/**
@@ -1539,11 +1554,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			 */
 			$this->server->getLogger()->debug($this->getName() . " moved too fast, reverting movement");
 			$this->server->getLogger()->debug("Old position: " . $this->asVector3() . ", new position: " . $this->newPosition);
-
-			$ev = new PlayerIllegalMoveEvent($this, $newPos, new Vector3($this->lastX, $this->lastY, $this->lastZ));
-			$ev->setCancelled(false);
-
-			$revert = !$ev->isCancelled();
+			$revert = true;
 		}elseif(!$this->level->isInLoadedTerrain($newPos) or !$this->level->isChunkGenerated($newPos->getFloorX() >> 4, $newPos->getFloorZ() >> 4)){
 			$revert = true;
 			$this->nextChunkOrderRun = 0;
@@ -1817,9 +1828,11 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	}
 
 	public function handleLogin(LoginPacket $packet) : bool{
-		if($this->loggedIn){
+		if($this->seenLoginPacket){
 			return false;
 		}
+		$this->seenLoginPacket = true;
+		$this->protocol = $packet->protocol;
 
 		if(!in_array($packet->protocol, ProtocolInfo::SUPPORTED_PROTOCOLS)){
 			if($packet->protocol < ProtocolInfo::CURRENT_PROTOCOL){
@@ -1833,8 +1846,6 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 			return true;
 		}
-
-		$this->protocol = $packet->protocol;
 
 		if(!self::isValidUserName($packet->username)){
 			$this->close("", "disconnectionScreen.invalidName");
@@ -1864,6 +1875,20 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			$animations[] = new SkinAnimation(new SkinImage($animation["ImageHeight"], $animation["ImageWidth"], base64_decode($animation["Image"], true)), $animation["Type"], $animation["Frames"]);
 		}
 
+		$personaPieces = [];
+		if(isset($packet->clientData["PersonaPieces"])) {
+		    $personaPieces = array_map(function ($piece) {
+		        return new PersonaSkinPiece($piece["PieceId"], $piece["PieceType"], $piece["PackId"], $piece["IsDefault"], $piece["ProductId"]);
+            }, $packet->clientData["PersonaPieces"]);
+        }
+
+		$pieceTintColors = [];
+		if(isset($packet->clientData["PieceTintColors"])) {
+		    $pieceTintColors = array_map(function ($tintColor) {
+                return new PersonaPieceTintColor($tintColor["PieceType"], $tintColor["Colors"]);
+            }, $packet->clientData["PieceTintColors"]);
+        }
+
 		$skinData = new SkinData(
 			$packet->clientData["SkinId"],
 			base64_decode($packet->clientData["SkinResourcePatch"] ?? "", true),
@@ -1875,7 +1900,13 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			$packet->clientData["PremiumSkin"] ?? false,
 			$packet->clientData["PersonaSkin"] ?? false,
 			$packet->clientData["CapeOnClassicSkin"] ?? false,
-			$packet->clientData["CapeId"] ?? ""
+			$packet->clientData["CapeId"] ?? "",
+			null,
+			$packet->clientData["ArmSize"] ?? SkinData::ARM_SIZE_WIDE,
+			$packet->clientData["SkinColor"] ?? "",
+			$personaPieces,
+			$pieceTintColors,
+			true
 		);
 
 		$skin = SkinAdapterSingleton::get()->fromSkinData($skinData);
@@ -2052,7 +2083,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 					$pk = new ResourcePackDataInfoPacket();
 					$pk->packId = $pack->getPackId();
-					$pk->maxChunkSize = 1048576; //1MB
+					$pk->maxChunkSize = self::RESOURCE_PACK_CHUNK_SIZE;
 					$pk->chunkCount = (int) ceil($pack->getPackSize() / $pk->maxChunkSize);
 					$pk->compressedPackSize = $pack->getPackSize();
 					$pk->sha256 = $pack->getSha256();
@@ -2218,7 +2249,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	}
 
 	public function handleMovePlayer(MovePlayerPacket $packet) : bool{
-		$newPos = $packet->position->subtract(0, $this->baseOffset, 0);
+		$newPos = $packet->position->round(4)->subtract(0, $this->baseOffset, 0);
 
 		if($this->isTeleporting and $newPos->distanceSquared($this) > 1){  //Tolerate up to 1 block to avoid problems with client-sided physics when spawning in blocks
 			$this->sendPosition($this, null, null, MovePlayerPacket::MODE_RESET);
@@ -2285,11 +2316,6 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	public function handleInventoryTransaction(InventoryTransactionPacket $packet) : bool{
 		if(!$this->spawned or !$this->isAlive()){
 			return false;
-		}
-
-		if($this->isSpectator()){
-			$this->sendAllInventories();
-			return true;
 		}
 
 		/** @var InventoryAction[] $actions */
@@ -2385,7 +2411,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 						$this->setUsingItem(false);
 
-						if(!$this->canInteract($blockVector->add(0.5, 0.5, 0.5), 13) or $this->isSpectator()){
+						if(!$this->canInteract($blockVector->add(0.5, 0.5, 0.5), 13)){
 						}elseif($this->isCreative()){
 							$item = $this->inventory->getItemInHand();
 							if($this->level->useItemOn($blockVector, $item, $face, $packet->trData->clickPos, $this, true)){
@@ -2491,7 +2517,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 						}
 
 						$ev = new PlayerInteractEvent($this, $item, null, $directionVector, $face, PlayerInteractEvent::RIGHT_CLICK_AIR);
-						if($this->hasItemCooldown($item)){
+						if($this->hasItemCooldown($item) or $this->isSpectator()){
 							$ev->setCancelled();
 						}
 
@@ -2542,7 +2568,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 						$heldItem = $this->inventory->getItemInHand();
 						$oldItem = clone $heldItem;
 
-						if(!$this->canInteract($target, 8)){
+						if(!$this->canInteract($target, 8) or $this->isSpectator()){
 							$cancelled = true;
 						}elseif($target instanceof Player){
 							if(!$this->server->getConfigBool("pvp")){
@@ -3040,8 +3066,8 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		$pk = new ResourcePackChunkDataPacket();
 		$pk->packId = $pack->getPackId();
 		$pk->chunkIndex = $packet->chunkIndex;
-		$pk->data = $pack->getPackChunk(1048576 * $packet->chunkIndex, 1048576);
-		$pk->progress = (1048576 * $packet->chunkIndex);
+		$pk->data = $pack->getPackChunk(self::RESOURCE_PACK_CHUNK_SIZE * $packet->chunkIndex, self::RESOURCE_PACK_CHUNK_SIZE);
+		$pk->progress = (self::RESOURCE_PACK_CHUNK_SIZE * $packet->chunkIndex);
 		$this->dataPacket($pk);
 		return true;
 	}
@@ -3062,14 +3088,26 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 				$modifiedPages[] = $packet->pageNumber;
 				break;
 			case BookEditPacket::TYPE_ADD_PAGE:
+				if(!$newBook->pageExists($packet->pageNumber)){
+					//this may only come before a page which already exists
+					//TODO: the client can send insert-before actions on trailing client-side pages which cause odd behaviour on the server
+					return false;
+				}
 				$newBook->insertPage($packet->pageNumber, $packet->text);
 				$modifiedPages[] = $packet->pageNumber;
 				break;
 			case BookEditPacket::TYPE_DELETE_PAGE:
+				if(!$newBook->pageExists($packet->pageNumber)){
+					return false;
+				}
 				$newBook->deletePage($packet->pageNumber);
 				$modifiedPages[] = $packet->pageNumber;
 				break;
 			case BookEditPacket::TYPE_SWAP_PAGES:
+				if(!$newBook->pageExists($packet->pageNumber) or !$newBook->pageExists($packet->secondaryPageNumber)){
+					//the client will create pages on its own without telling us until it tries to switch them
+					$newBook->addPage(max($packet->pageNumber, $packet->secondaryPageNumber));
+				}
 				$newBook->swapPages($packet->pageNumber, $packet->secondaryPageNumber);
 				$modifiedPages = [$packet->pageNumber, $packet->secondaryPageNumber];
 				break;
@@ -3143,8 +3181,8 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 		$timings = Timings::getSendDataPacketTimings($packet);
 		$timings->startTiming();
-		try {
-		    $packet->protocolVersion = $this->getProtocol();
+		try{
+		    $packet->protocol = $this->getProtocol();
 
 			$ev = new DataPacketSendEvent($this, $packet);
 			$ev->call();
@@ -3727,6 +3765,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		$pk->headYaw = $yaw;
 		$pk->yaw = $yaw;
 		$pk->mode = $mode;
+		$pk->onGround = $this->onGround;
 
 		if($targets !== null){
 			$this->server->broadcastPacket($targets, $pk);
@@ -3962,10 +4001,6 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	public function onBlockChanged(Vector3 $block){
 
 	}
-
-	public function getProtocol(): int {
-	    return $this->protocol;
-    }
 
 	public function getLoaderId() : int{
 		return $this->loaderId;

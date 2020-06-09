@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9a57de8b1c5bc005acc75b2b34407bb1
+class ComposerStaticInit29feecad877f8a7b818d2c63c8a44eef
 {
     public static $files = array (
         '44f761fde233c98b53686bd6223104dd' => __DIR__ . '/../..' . '/src/pocketmine/CoreConstants.php',
@@ -23,6 +23,7 @@ class ComposerStaticInit9a57de8b1c5bc005acc75b2b34407bb1
             'pocketmine\\snooze\\' => 18,
             'pocketmine\\nbt\\' => 15,
             'pocketmine\\math\\' => 16,
+            'pocketmine\\' => 11,
         ),
         'D' => 
         array (
@@ -55,6 +56,10 @@ class ComposerStaticInit9a57de8b1c5bc005acc75b2b34407bb1
         array (
             0 => __DIR__ . '/..' . '/pocketmine/math/src',
         ),
+        'pocketmine\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/tests/phpunit',
+        ),
         'DaveRandom\\CallbackValidator\\' => 
         array (
             0 => __DIR__ . '/..' . '/pocketmine/callback-validator/src',
@@ -77,6 +82,7 @@ class ComposerStaticInit9a57de8b1c5bc005acc75b2b34407bb1
         'ClassCastException' => __DIR__ . '/..' . '/pocketmine/spl/src/ClassCastException.php',
         'ClassLoader' => __DIR__ . '/..' . '/pocketmine/classloader/src/ClassLoader.php',
         'ClassNotFoundException' => __DIR__ . '/..' . '/pocketmine/spl/src/ClassNotFoundException.php',
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'InvalidArgumentCountException' => __DIR__ . '/..' . '/pocketmine/spl/src/InvalidArgumentCountException.php',
         'InvalidKeyException' => __DIR__ . '/..' . '/pocketmine/spl/src/InvalidKeyException.php',
         'InvalidStateException' => __DIR__ . '/..' . '/pocketmine/spl/src/InvalidStateException.php',
@@ -96,10 +102,10 @@ class ComposerStaticInit9a57de8b1c5bc005acc75b2b34407bb1
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9a57de8b1c5bc005acc75b2b34407bb1::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9a57de8b1c5bc005acc75b2b34407bb1::$prefixDirsPsr4;
-            $loader->fallbackDirsPsr4 = ComposerStaticInit9a57de8b1c5bc005acc75b2b34407bb1::$fallbackDirsPsr4;
-            $loader->classMap = ComposerStaticInit9a57de8b1c5bc005acc75b2b34407bb1::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit29feecad877f8a7b818d2c63c8a44eef::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit29feecad877f8a7b818d2c63c8a44eef::$prefixDirsPsr4;
+            $loader->fallbackDirsPsr4 = ComposerStaticInit29feecad877f8a7b818d2c63c8a44eef::$fallbackDirsPsr4;
+            $loader->classMap = ComposerStaticInit29feecad877f8a7b818d2c63c8a44eef::$classMap;
 
         }, null, ClassLoader::class);
     }

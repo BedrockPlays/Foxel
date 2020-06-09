@@ -1348,17 +1348,6 @@ class Server{
 			$this->baseLang = new BaseLang($this->getConfigString("language", $this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE)));
 			$this->logger->info($this->getLanguage()->translateString("language.selected", [$this->getLanguage()->getName(), $this->getLanguage()->getLang()]));
 
-			/*
-			if(\pocketmine\IS_DEVELOPMENT_BUILD and !((bool) $this->getProperty("settings.enable-dev-builds", false))){
-				$this->logger->emergency($this->baseLang->translateString("pocketmine.server.devBuild.error1", [\pocketmine\NAME]));
-				$this->logger->emergency($this->baseLang->translateString("pocketmine.server.devBuild.error2"));
-				$this->logger->emergency($this->baseLang->translateString("pocketmine.server.devBuild.error3"));
-				$this->logger->emergency($this->baseLang->translateString("pocketmine.server.devBuild.error4", ["settings.enable-dev-builds"]));
-				$this->logger->emergency($this->baseLang->translateString("pocketmine.server.devBuild.error5", ["https://github.com/pmmp/PocketMine-MP/releases"]));
-				$this->forceShutdown();
-				return;
-			}*/
-
 			if($this->logger instanceof MainLogger){
 				$this->logger->setLogDebug(\pocketmine\DEBUG > 1);
 			}
@@ -1386,7 +1375,7 @@ class Server{
 				Network::$BATCH_THRESHOLD = -1;
 			}
 
-			$this->networkCompressionLevel = $this->getProperty("network.compression-level", 7);
+			$this->networkCompressionLevel = (int) $this->getProperty("network.compression-level", 7);
 			if($this->networkCompressionLevel < 1 or $this->networkCompressionLevel > 9){
 				$this->logger->warning("Invalid network compression level $this->networkCompressionLevel set, setting to default 7");
 				$this->networkCompressionLevel = 7;
@@ -1687,8 +1676,7 @@ class Server{
 	 *
 	 * @return void
 	 */
-	public function broadcastPacket(array $players, DataPacket $packet) {
-//		$packet->encode(); // batchPackets method will encode packet with multiprotocol
+	public function broadcastPacket(array $players, DataPacket $packet){
 		$this->batchPackets($players, [$packet], false);
 	}
 
@@ -1707,14 +1695,16 @@ class Server{
 
 		Timings::$playerNetworkTimer->startTiming();
 
-		foreach (ProtocolInfo::SUPPORTED_PROTOCOLS as $protocol) {
-		    $targets = array_filter($players, function (Player $player) use ($protocol) { return $player->isConnected() && $player->getProtocol() == $protocol; });
+		$protocols = array_unique(array_map(function (Player $player) {return $player->getProtocol();}, $players));
+		foreach ($protocols as $protocol) {
+            $targets = array_filter($players, function(Player $player) use ($protocol) : bool{ return $player->isConnected() and $player->getProtocol() === $protocol; });
 
             if(count($targets) > 0){
                 $pk = new BatchPacket();
 
-                foreach($packets as $p) {
-                    $p->protocolVersion = $protocol;
+                foreach($packets as $p){
+                    $p->protocol = $protocol;
+                    $p->encode();
                     $pk->addPacket($p);
                 }
 

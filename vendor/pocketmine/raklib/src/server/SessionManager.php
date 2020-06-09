@@ -80,9 +80,6 @@ class SessionManager{
 	/** @var string */
 	protected $name = "";
 
-	/** @var int */
-	protected $packetLimit = 200;
-
 	/** @var bool */
 	protected $shutdown = false;
 
@@ -237,18 +234,9 @@ class SessionManager{
 		}
 
 		$this->receiveBytes += $len;
-		/*if(isset($this->block[$address->ip])){
+		if(isset($this->block[$address->ip])){
 			return true;
 		}
-
-		if(isset($this->ipSec[$address->ip])){
-			if(++$this->ipSec[$address->ip] >= $this->packetLimit){
-				$this->blockAddress($address->ip);
-				return true;
-			}
-		}else{
-			$this->ipSec[$address->ip] = 1;
-		}*/
 
 		if($len < 1){
 			return true;
@@ -285,7 +273,7 @@ class SessionManager{
 						foreach($this->server->getTrace(0, $e->getTrace()) as $line){
 							$logger->debug($line);
 						}
-						//$this->blockAddress($address->ip, 5);
+						$this->blockAddress($address->ip, 5);
 						break;
 					}
 
@@ -305,7 +293,7 @@ class SessionManager{
 			$logger = $this->getLogger();
 			$logger->debug("Packet from $address (" . strlen($buffer) . " bytes): 0x" . bin2hex($buffer));
 			$logger->logException($e);
-			//$this->blockAddress($address->ip, 5);
+			$this->blockAddress($address->ip, 5);
 		}
 
 		return true;
@@ -414,20 +402,17 @@ class SessionManager{
 					case "portChecking":
 						$this->portChecking = (bool) $value;
 						break;
-					case "packetLimit":
-						$this->packetLimit = (int) $value;
-						break;
 				}
 			}elseif($id === RakLib::PACKET_BLOCK_ADDRESS){
 				$len = ord($packet[$offset++]);
 				$address = substr($packet, $offset, $len);
 				$offset += $len;
 				$timeout = Binary::readInt(substr($packet, $offset, 4));
-				//$this->blockAddress($address, $timeout);
+				$this->blockAddress($address, $timeout);
 			}elseif($id === RakLib::PACKET_UNBLOCK_ADDRESS){
 				$len = ord($packet[$offset++]);
 				$address = substr($packet, $offset, $len);
-				//$this->unblockAddress($address);
+				$this->unblockAddress($address);
 			}elseif($id === RakLib::PACKET_SHUTDOWN){
 				foreach($this->sessions as $session){
 					$this->removeSession($session);
