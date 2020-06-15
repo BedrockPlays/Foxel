@@ -23,10 +23,21 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
+use pocketmine\math\Vector3;
+use pocketmine\Player;
+
 class FishingRod extends Item{
 	public function __construct(int $meta = 0){
 		parent::__construct(self::FISHING_ROD, $meta, "Fishing Rod");
 	}
 
-	//TODO
+	public function onClickAir(Player $player, Vector3 $directionVector): bool {
+	    if($player->isFishing()) {
+	        $player->stopFishing();
+	        return true;
+        }
+
+	    $player->startFishing($this);
+	    return true;
+    }
 }

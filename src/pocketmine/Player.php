@@ -35,9 +35,11 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\entity\object\ItemEntity;
 use pocketmine\entity\projectile\Arrow;
+use pocketmine\entity\projectile\FishingHook;
 use pocketmine\entity\Skin;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\event\player\cheat\PlayerIllegalMoveEvent;
 use pocketmine\event\player\PlayerAchievementAwardedEvent;
@@ -80,6 +82,7 @@ use pocketmine\item\Consumable;
 use pocketmine\item\Durable;
 use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\enchantment\MeleeWeaponEnchantment;
+use pocketmine\item\FishingRod;
 use pocketmine\item\Item;
 use pocketmine\item\MaybeConsumable;
 use pocketmine\item\WritableBook;
@@ -380,6 +383,9 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	protected $lastRightClickTime = 0.0;
 	/** @var Vector3|null */
 	protected $lastRightClickPos = null;
+
+	/** @var FishingHook|null */
+	protected $fishingEntity;
 
 	/**
 	 * @return TranslationContainer|string
@@ -1497,6 +1503,33 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 		return 0;
 	}
+
+	public function startFishing(FishingRod $item) {
+	    if($this->isFishing()) {
+	        $this->stopFishing();
+        }
+
+	    $nbt = FishingHook::createBaseNBT($this->add(0, $this->getEyeHeight()), $this->getDirectionVector(), $this->getYaw(), $this->getPitch());
+	    $hook = new FishingHook($this->getLevel(), $nbt, $this);
+
+	    $event = new ProjectileLaunchEvent($hook);
+	    $event->call();
+	    if($event->isCancelled()) {
+	        return;
+        }
+
+	    $hook->spawnToAll();
+	    $this->fishingEntity = $hook;
+    }
+
+    public function stopFishing() {
+	    $this->fishingEntity->flagForDespawn();
+	    $this->fishingEntity = null;
+    }
+
+    public function isFishing(): bool {
+	    return !is_null($this->fishingEntity);
+    }
 
 	protected function checkGroundState(float $movX, float $movY, float $movZ, float $dx, float $dy, float $dz) : void{
 		$bb = clone $this->boundingBox;
@@ -2693,6 +2726,9 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		$this->inventory->equipItem($packet->hotbarSlot);
 
 		$this->setUsingItem(false);
+		if($this->isFishing()) {
+		    $this->stopFishing();
+        }
 
 		return true;
 	}
@@ -3563,6 +3599,10 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 				$this->perm->clearPermissions();
 				$this->perm = null;
 			}
+
+			if($this->isFishing()) {
+			    $this->stopFishing();
+            }
 		}
 	}
 
