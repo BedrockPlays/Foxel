@@ -1523,7 +1523,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
     }
 
     public function stopFishing() {
-	    $this->fishingEntity->flagForDespawn();
+	    $this->fishingEntity->close();
 	    $this->fishingEntity = null;
     }
 

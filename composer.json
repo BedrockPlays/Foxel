@@ -24,7 +24,7 @@
       "ext-yaml": ">=2.0.0",
       "ext-zip": "*",
       "ext-zlib": ">=1.2.11",
-      "pocketmine/raklib": "^0.12.7",
+      "foxel/raklib": "dev-master",
       "pocketmine/spl": "^0.4.0",
       "pocketmine/binaryutils": "^0.1.9",
       "pocketmine/nbt": "^0.2.10",
@@ -46,9 +46,11 @@
          "src/pocketmine/VersionInfo.php"
       ]
    },
-   "autoload-dev": {
-      "psr-4": {
-         "pocketmine\\": "tests/phpunit/"
+   "repositories": [
+      {
+         "type": "vcs",
+         "name": "foxel/raklib",
+         "url": "https://github.com/BedrockPlay/RakLib"
       }
-   }
+   ]
 }
