@@ -77,6 +77,7 @@ use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\LevelEventPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\SetDifficultyPacket;
 use pocketmine\network\mcpe\protocol\SetTimePacket;
 use pocketmine\network\mcpe\protocol\types\RuntimeBlockMapping;
@@ -156,7 +157,7 @@ class Level implements ChunkManager, Metadatable{
 	/** @var Block[][] */
 	private $blockCache = [];
 
-	/** @var BatchPacket[] */
+	/** @var BatchPacket[][] */
 	private $chunkCache = [];
 
 	/** @var int */
@@ -2487,7 +2488,7 @@ class Level implements ChunkManager, Metadatable{
 			foreach($this->chunkSendQueue[$index] as $player){
 				/** @var Player $player */
 				if($player->isConnected() and isset($player->usedChunks[$index])){
-					$player->sendChunk($x, $z, $this->chunkCache[$index]);
+					$player->sendChunk($x, $z, $this->chunkCache[$index][(int)($player->getProtocol() >= ProtocolInfo::PROTOCOL_16)]);
 				}
 			}
 			unset($this->chunkSendQueue[$index]);
@@ -2532,10 +2533,8 @@ class Level implements ChunkManager, Metadatable{
 		}
 	}
 
-	/**
-	 * @return void
-	 */
-	public function chunkRequestCallback(int $x, int $z, BatchPacket $payload){
+
+	public function chunkRequestCallback(int $x, int $z, array $payload) {
 		$this->timings->syncChunkSendTimer->startTiming();
 
 		$index = Level::chunkHash($x, $z);

@@ -122,6 +122,8 @@ class CraftingManager {
             $pk->encode();
 
             $batch = new BatchPacket();
+            $batch->protocol = $protocol;
+
             $batch->addPacket($pk);
             $batch->setCompressionLevel(Server::getInstance()->networkCompressionLevel);
             $batch->encode();

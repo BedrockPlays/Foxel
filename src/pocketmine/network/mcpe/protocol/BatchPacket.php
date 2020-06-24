@@ -25,6 +25,7 @@ namespace pocketmine\network\mcpe\protocol;
 
 #include <rules/DataPacket.h>
 
+use mysql_xdevapi\Exception;
 use pocketmine\network\mcpe\NetworkBinaryStream;
 use pocketmine\network\mcpe\NetworkSession;
 use function assert;
@@ -71,8 +72,7 @@ class BatchPacket extends DataPacket{
 	}
 
 	protected function encodePayload(){
-//		$this->put(zlib_encode($this->payload, $this->protocol >= ProtocolInfo::PROTOCOL_16 ? ZLIB_ENCODING_RAW : ZLIB_ENCODING_DEFLATE, $this->compressionLevel));
-        $this->put(zlib_encode($this->payload, ZLIB_ENCODING_RAW, $this->compressionLevel));
+		$this->put(zlib_encode($this->payload, $this->protocol >= ProtocolInfo::PROTOCOL_16 ? ZLIB_ENCODING_RAW : ZLIB_ENCODING_DEFLATE, $this->compressionLevel));
 	}
 
 	/**
