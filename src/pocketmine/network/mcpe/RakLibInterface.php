@@ -48,12 +48,7 @@ use function spl_object_hash;
 use function unserialize;
 use const PTHREADS_INHERIT_CONSTANTS;
 
-class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
-	/**
-	 * Sometimes this gets changed when the MCPE-layer protocol gets broken to the point where old and new can't
-	 * communicate. It's important that we check this to avoid catastrophes.
-	 */
-	private const MCPE_RAKNET_PROTOCOL_VERSION = 9;
+class RakLibInterface implements ServerInstance, AdvancedSourceInterface {
 
 	/** @var Server */
 	private $server;
@@ -88,7 +83,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 			\pocketmine\COMPOSER_AUTOLOADER_PATH,
 			new InternetAddress($this->server->getIp(), $this->server->getPort(), 4),
 			(int) $this->server->getProperty("network.max-mtu-size", 1492),
-			self::MCPE_RAKNET_PROTOCOL_VERSION,
+			true,
 			$this->sleeper
 		);
 		$this->interface = new ServerHandler($this->rakLib, $this);
@@ -166,6 +161,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 			try{
 				if($packet->buffer !== ""){
 					$pk = new BatchPacket($packet->buffer);
+
 					$player->handleDataPacket($pk);
 				}
 			}catch(\Throwable $e){
@@ -261,7 +257,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 				$this->interface->sendEncapsulated($identifier, $pk, ($needACK ? RakLib::FLAG_NEED_ACK : 0) | ($immediate ? RakLib::PRIORITY_IMMEDIATE : RakLib::PRIORITY_NORMAL));
 				return $pk->identifierACK;
 			}else{
-				$this->server->batchPackets([$player], [$packet], true, $immediate);
+				$this->server->batchPackets([$player], [$packet], true, $immediate, false);
 				return null;
 			}
 		}

@@ -1685,10 +1685,13 @@ class Server{
 	 *
 	 * @param Player[]     $players
 	 * @param DataPacket[] $packets
+     * @param bool         $forceSync
+     * @param bool         $immediate
+     * @param bool         $forceEncode
 	 *
 	 * @return void
 	 */
-	public function batchPackets(array $players, array $packets, bool $forceSync = false, bool $immediate = false){
+	public function batchPackets(array $players, array $packets, bool $forceSync = false, bool $immediate = false, bool $forceEncode = true){
 		if(count($packets) === 0){
 			throw new \InvalidArgumentException("Cannot send empty batch");
 		}
@@ -1701,10 +1704,13 @@ class Server{
 
             if(count($targets) > 0){
                 $pk = new BatchPacket();
+                $pk->protocol = $protocol;
 
                 foreach($packets as $p){
                     $p->protocol = $protocol;
-                    $p->encode();
+                    if(!$forceEncode && !$p->isEncoded) {
+                        $p->encode();
+                    }
                     $pk->addPacket($p);
                 }
 

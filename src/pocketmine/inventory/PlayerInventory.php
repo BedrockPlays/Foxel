@@ -26,8 +26,11 @@ namespace pocketmine\inventory;
 use pocketmine\entity\Human;
 use pocketmine\event\player\PlayerItemHeldEvent;
 use pocketmine\item\Item;
+use pocketmine\network\mcpe\protocol\ContainerClosePacket;
+use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
 use pocketmine\network\mcpe\protocol\InventoryContentPacket;
 use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\ContainerIds;
 use pocketmine\Player;
 use function in_array;
@@ -215,4 +218,35 @@ class PlayerInventory extends BaseInventory{
 	public function getHolder(){
 		return $this->holder;
 	}
+
+    /**
+     * @param Player $who
+     */
+	public function onOpen(Player $who): void {
+	    if($who->getProtocol() >= ProtocolInfo::PROTOCOL_16) {
+            $pk = new ContainerOpenPacket();
+            $pk->protocol = $who->getProtocol();
+
+            $pk->windowId = $who->getWindowId($this);
+            $pk->type = -1;
+            $pk->x = (int)$this->getHolder()->getX();
+            $pk->y = (int)$this->getHolder()->getY();
+            $pk->z = (int)$this->getHolder()->getZ();
+            $who->dataPacket($pk);
+        }
+
+        parent::onOpen($who);
+    }
+
+    public function onClose(Player $who): void {
+	    if($who->getProtocol() >= ProtocolInfo::PROTOCOL_16) {
+	        $pk = new ContainerClosePacket();
+	        $pk->protocol = $who->getProtocol();
+	        $pk->windowId = -1;
+
+	        $who->dataPacket($pk);
+        }
+
+        parent::onClose($who);
+    }
 }

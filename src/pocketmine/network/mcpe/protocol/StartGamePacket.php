@@ -236,7 +236,7 @@ class StartGamePacket extends DataPacket{
 	}
 
 	protected function encodePayload(){
-		$this->putEntityUniqueId($this->entityUniqueId);
+        $this->putEntityUniqueId($this->entityUniqueId);
 		$this->putEntityRuntimeId($this->entityRuntimeId);
 		$this->putVarInt($this->playerGamemode);
 
@@ -247,6 +247,10 @@ class StartGamePacket extends DataPacket{
 
 		//Level settings
 		$this->putVarInt($this->seed);
+		if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+		    $this->putShort(0); // TODO - Add property
+		    $this->putString(""); // TODO - Add property
+        }
 		$this->putVarInt($this->dimension);
 		$this->putVarInt($this->generator);
 		$this->putVarInt($this->worldGamemode);
@@ -254,15 +258,25 @@ class StartGamePacket extends DataPacket{
 		$this->putBlockPosition($this->spawnX, $this->spawnY, $this->spawnZ);
 		$this->putBool($this->hasAchievementsDisabled);
 		$this->putVarInt($this->time);
+
 		$this->putVarInt($this->eduEditionOffer);
+        if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+            $this->putBool(false); // TODO - Add property (edu mode)
+        }
 		$this->putBool($this->hasEduFeaturesEnabled);
+        if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+            $this->putString(""); // TODO - Add property (edu product id)
+        }
+
 		$this->putLFloat($this->rainLevel);
 		$this->putLFloat($this->lightningLevel);
 		$this->putBool($this->hasConfirmedPlatformLockedContent);
 		$this->putBool($this->isMultiplayerGame);
 		$this->putBool($this->hasLANBroadcast);
 		$this->putVarInt($this->xboxLiveBroadcastMode);
-		$this->putVarInt($this->platformBroadcastMode);
+		if($this->protocol < ProtocolInfo::PROTOCOL_16) {
+            $this->putVarInt($this->platformBroadcastMode);
+        }
 		$this->putBool($this->commandsEnabled);
 		$this->putBool($this->isTexturePacksRequired);
 		$this->putGameRules($this->gameRules);
@@ -277,8 +291,13 @@ class StartGamePacket extends DataPacket{
 		$this->putBool($this->isFromWorldTemplate);
 		$this->putBool($this->isWorldTemplateOptionLocked);
 		$this->putBool($this->onlySpawnV1Villagers);
-
-		$this->putString($this->vanillaVersion);
+        $this->putString($this->vanillaVersion);
+		if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+		    $this->putLInt(16); // TODO - Add property (Limited world width)
+            $this->putLInt(16); // TODO - Add property (Limited world depth)
+            $this->putByte(0); // TODO - Add property (Nether type)
+            $this->putByte(0); // TODO - Add property (Exp gameplay)
+        }
 		$this->putString($this->levelId);
 		$this->putString($this->worldName);
 		$this->putString($this->premiumWorldTemplateId);
@@ -307,6 +326,9 @@ class StartGamePacket extends DataPacket{
 		}
 
 		$this->putString($this->multiplayerCorrelationId);
+		if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+		    $this->putByte(0); // TODO - Add property
+        }
 	}
 
 	/**

@@ -680,6 +680,9 @@ class NetworkBinaryStream extends BinaryStream{
 		$this->putEntityUniqueId($link->toEntityUniqueId);
 		$this->putByte($link->type);
 		$this->putBool($link->immediate);
+		if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+		    $this->putByte(0); // TODO - Add to get...(); Add property (whether the link was changes by the rider)
+        }
 	}
 
 	protected function getCommandOriginData() : CommandOriginData{

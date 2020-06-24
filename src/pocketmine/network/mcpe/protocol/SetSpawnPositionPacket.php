@@ -53,7 +53,15 @@ class SetSpawnPositionPacket extends DataPacket{
 	protected function encodePayload(){
 		$this->putVarInt($this->spawnType);
 		$this->putBlockPosition($this->x, $this->y, $this->z);
-		$this->putBool($this->spawnForced);
+		if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+            $this->putVarInt(0); // TODO - Add property (Dimension type)
+            $this->putVarInt($this->x);
+            $this->putVarInt($this->y);
+            $this->putVarInt($this->z);
+        }
+		if($this->protocol < ProtocolInfo::PROTOCOL_16) {
+            $this->putBool($this->spawnForced);
+        }
 	}
 
 	public function handle(NetworkSession $session) : bool{

@@ -34,7 +34,7 @@ use pocketmine\Player;
 
 class NetworkInventoryAction{
 	public const SOURCE_CONTAINER = 0;
-
+	public const SOURCE_GLOBAL = 1; // ??
 	public const SOURCE_WORLD = 2; //drop/pickup item entity
 	public const SOURCE_CREATIVE = 3;
 	public const SOURCE_TODO = 99999;
@@ -92,6 +92,8 @@ class NetworkInventoryAction{
 			case self::SOURCE_CONTAINER:
 				$this->windowId = $packet->getVarInt();
 				break;
+            case self::SOURCE_GLOBAL: // ??
+                break;
 			case self::SOURCE_WORLD:
 				$this->sourceFlags = $packet->getUnsignedVarInt();
 				break;

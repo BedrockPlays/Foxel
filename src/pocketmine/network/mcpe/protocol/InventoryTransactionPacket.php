@@ -72,7 +72,22 @@ class InventoryTransactionPacket extends DataPacket{
 	public $trData;
 
 	protected function decodePayload(){
+	    if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+	        $unknown = $this->getUnsignedVarInt();
+	        if($unknown != 0) {
+	            for($i = 0, $j = $this->getUnsignedVarInt(); $i < $j; $i++) {
+	                $this->getUnsignedVarInt(); // Inventory id
+                    for($k = 0, $l = $this->getUnsignedVarInt(); $k < $l; $k++) {
+                        $this->getUnsignedVarInt(); // Slot
+                    }
+                }
+            }
+        }
+
 		$this->transactionType = $this->getUnsignedVarInt();
+	    if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+	        $this->getByte(); // ???
+        }
 
 		for($i = 0, $count = $this->getUnsignedVarInt(); $i < $count; ++$i){
 			$this->actions[] = $action = (new NetworkInventoryAction())->read($this);
