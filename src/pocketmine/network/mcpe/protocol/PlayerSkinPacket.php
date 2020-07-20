@@ -57,7 +57,8 @@ class PlayerSkinPacket extends DataPacket{
 		$this->putString($this->newSkinName);
 		$this->putString($this->oldSkinName);
 		if($this->protocol > ProtocolInfo::PROTOCOL_1_14) {
-            $this->putBool($this->skin->isVerified());
+//            $this->putBool($this->skin->isVerified());
+            $this->putBool(true);
         }
 	}
 

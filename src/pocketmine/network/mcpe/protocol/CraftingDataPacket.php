@@ -25,7 +25,6 @@ namespace pocketmine\network\mcpe\protocol;
 
 #include <rules/DataPacket.h>
 
-use pocketmine\inventory\CraftingManager;
 use pocketmine\inventory\FurnaceRecipe;
 use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
@@ -261,6 +260,13 @@ class CraftingDataPacket extends DataPacket{
 		$this->entries[] = $recipe;
 	}
 
+    /**
+     * @param PotionTypeRecipe $recipe
+     */
+	public function addPotionTypeRecipe(PotionTypeRecipe $recipe) {
+	    $this->potionTypeRecipes[] = $recipe;
+    }
+
 	protected function encodePayload(){
 		$this->putUnsignedVarInt(count($this->entries));
 
@@ -279,10 +285,22 @@ class CraftingDataPacket extends DataPacket{
 		}
 		$this->putUnsignedVarInt(count($this->potionTypeRecipes));
 		foreach($this->potionTypeRecipes as $recipe){
-			$this->putVarInt($recipe->getInputPotionType());
-			$this->putVarInt($recipe->getIngredientItemId());
-			$this->putVarInt($recipe->getOutputPotionType());
+		    if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
+		        $this->putVarInt($recipe->getInputItemId());
+		        $this->putVarInt($recipe->getInputItemMeta());
+                $this->putVarInt($recipe->getIngredientItemId());
+                $this->putVarInt($recipe->getIngredientItemMeta());
+                $this->putVarInt($recipe->getOutputItemId());
+                $this->putVarInt($recipe->getOutputItemMeta());
+            }
+
+		    if($this->protocol < ProtocolInfo::PROTOCOL_16) {
+                $this->putVarInt($recipe->getInputPotionType());
+                $this->putVarInt($recipe->getIngredientItemId());
+                $this->putVarInt($recipe->getOutputPotionType());
+            }
 		}
+
 		$this->putUnsignedVarInt(count($this->potionContainerRecipes));
 		foreach($this->potionContainerRecipes as $recipe){
 			$this->putVarInt($recipe->getInputItemId());

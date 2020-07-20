@@ -44,6 +44,8 @@ class CraftingManager {
 	protected $shapelessRecipes = [];
 	/** @var FurnaceRecipe[] */
 	protected $furnaceRecipes = [];
+	/** @var BrewingRecipe[] */
+	protected $brewingRecipes = [];
 
 	/** @var BatchPacket[]|null */
 	private $craftingDataCache = null;
@@ -91,6 +93,11 @@ class CraftingManager {
 			}
 		}
 
+		$brewingRecipes = json_decode(file_get_contents(\pocketmine\RESOURCE_PATH . "vanilla" . DIRECTORY_SEPARATOR . "potion_recipes.json"), true);
+		foreach ($brewingRecipes as ["fromPotionId" => $fromPotionId, "ingredient" => $ingredient, "toPotionId" => $toPotionId]) {
+            $this->registerRecipe(new BrewingRecipe($fromPotionId, $ingredient, $toPotionId));
+        }
+
 		$this->buildCraftingDataCache();
 	}
 
@@ -117,6 +124,10 @@ class CraftingManager {
 
             foreach($this->furnaceRecipes as $recipe){
                 $pk->addFurnaceRecipe($recipe);
+            }
+
+            foreach ($this->brewingRecipes as $recipe) {
+                $pk->addPotionTypeRecipe($recipe->toPotionTypeRecipe());
             }
 
             $pk->encode();
@@ -233,6 +244,10 @@ class CraftingManager {
 		$this->furnaceRecipes[$input->getId() . ":" . ($input->hasAnyDamageValue() ? "?" : $input->getDamage())] = $recipe;
 		$this->craftingDataCache = null;
 	}
+
+	public function registerBrewingRecipe(BrewingRecipe $recipe): void {
+	    $this->brewingRecipes[$recipe->getOutput()] = $recipe;
+    }
 
 	/**
 	 * @param Item[]       $outputs

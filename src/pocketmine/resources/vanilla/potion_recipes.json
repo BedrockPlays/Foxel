@@ -1,0 +1,307 @@
+[
+    {
+        "fromPotionId": 4,
+        "ingredient": 377,
+        "toPotionId": 31
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 376,
+        "toPotionId": 34
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 370,
+        "toPotionId": 28
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 396,
+        "toPotionId": 5
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 378,
+        "toPotionId": 12
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 470,
+        "toPotionId": 40
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 462,
+        "toPotionId": 19
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 414,
+        "toPotionId": 9
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 382,
+        "toPotionId": 21
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 375,
+        "toPotionId": 25
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 353,
+        "toPotionId": 14
+    },
+    {
+        "fromPotionId": 4,
+        "ingredient": 469,
+        "toPotionId": 37
+    },
+    {
+        "fromPotionId": 12,
+        "ingredient": 331,
+        "toPotionId": 13
+    },
+    {
+        "fromPotionId": 23,
+        "ingredient": 348,
+        "toPotionId": 24
+    },
+    {
+        "fromPotionId": 21,
+        "ingredient": 376,
+        "toPotionId": 23
+    },
+    {
+        "fromPotionId": 21,
+        "ingredient": 348,
+        "toPotionId": 22
+    },
+    {
+        "fromPotionId": 7,
+        "ingredient": 331,
+        "toPotionId": 8
+    },
+    {
+        "fromPotionId": 9,
+        "ingredient": 376,
+        "toPotionId": 17
+    },
+    {
+        "fromPotionId": 9,
+        "ingredient": 348,
+        "toPotionId": 11
+    },
+    {
+        "fromPotionId": 9,
+        "ingredient": 331,
+        "toPotionId": 10
+    },
+    {
+        "fromPotionId": 6,
+        "ingredient": 376,
+        "toPotionId": 8
+    },
+    {
+        "fromPotionId": 15,
+        "ingredient": 376,
+        "toPotionId": 18
+    },
+    {
+        "fromPotionId": 10,
+        "ingredient": 376,
+        "toPotionId": 18
+    },
+    {
+        "fromPotionId": 2,
+        "ingredient": 376,
+        "toPotionId": 35
+    },
+    {
+        "fromPotionId": 26,
+        "ingredient": 376,
+        "toPotionId": 23
+    },
+    {
+        "fromPotionId": 32,
+        "ingredient": 376,
+        "toPotionId": 35
+    },
+    {
+        "fromPotionId": 1,
+        "ingredient": 376,
+        "toPotionId": 34
+    },
+    {
+        "fromPotionId": 5,
+        "ingredient": 376,
+        "toPotionId": 7
+    },
+    {
+        "fromPotionId": 5,
+        "ingredient": 331,
+        "toPotionId": 6
+    },
+    {
+        "fromPotionId": 25,
+        "ingredient": 376,
+        "toPotionId": 23
+    },
+    {
+        "fromPotionId": 25,
+        "ingredient": 348,
+        "toPotionId": 27
+    },
+    {
+        "fromPotionId": 25,
+        "ingredient": 331,
+        "toPotionId": 26
+    },
+    {
+        "fromPotionId": 28,
+        "ingredient": 348,
+        "toPotionId": 30
+    },
+    {
+        "fromPotionId": 28,
+        "ingredient": 331,
+        "toPotionId": 29
+    },
+    {
+        "fromPotionId": 17,
+        "ingredient": 331,
+        "toPotionId": 18
+    },
+    {
+        "fromPotionId": 40,
+        "ingredient": 331,
+        "toPotionId": 41
+    },
+    {
+        "fromPotionId": 31,
+        "ingredient": 376,
+        "toPotionId": 34
+    },
+    {
+        "fromPotionId": 31,
+        "ingredient": 348,
+        "toPotionId": 33
+    },
+    {
+        "fromPotionId": 31,
+        "ingredient": 331,
+        "toPotionId": 32
+    },
+    {
+        "fromPotionId": 22,
+        "ingredient": 376,
+        "toPotionId": 24
+    },
+    {
+        "fromPotionId": 27,
+        "ingredient": 376,
+        "toPotionId": 23
+    },
+    {
+        "fromPotionId": 33,
+        "ingredient": 376,
+        "toPotionId": 34
+    },
+    {
+        "fromPotionId": 14,
+        "ingredient": 376,
+        "toPotionId": 17
+    },
+    {
+        "fromPotionId": 14,
+        "ingredient": 348,
+        "toPotionId": 16
+    },
+    {
+        "fromPotionId": 14,
+        "ingredient": 331,
+        "toPotionId": 15
+    },
+    {
+        "fromPotionId": 3,
+        "ingredient": 376,
+        "toPotionId": 34
+    },
+    {
+        "fromPotionId": 37,
+        "ingredient": 348,
+        "toPotionId": 39
+    },
+    {
+        "fromPotionId": 37,
+        "ingredient": 331,
+        "toPotionId": 38
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 377,
+        "toPotionId": 1
+    },
+    {
+        "fromPotionId": 19,
+        "ingredient": 331,
+        "toPotionId": 20
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 376,
+        "toPotionId": 34
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 370,
+        "toPotionId": 1
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 348,
+        "toPotionId": 3
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 378,
+        "toPotionId": 1
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 372,
+        "toPotionId": 4
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 414,
+        "toPotionId": 1
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 331,
+        "toPotionId": 1
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 382,
+        "toPotionId": 1
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 375,
+        "toPotionId": 1
+    },
+    {
+        "fromPotionId": 0,
+        "ingredient": 353,
+        "toPotionId": 1
+    },
+    {
+        "fromPotionId": 34,
+        "ingredient": 331,
+        "toPotionId": 35
+    }
+]

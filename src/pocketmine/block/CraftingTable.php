@@ -25,6 +25,8 @@ namespace pocketmine\block;
 
 use pocketmine\inventory\CraftingGrid;
 use pocketmine\item\Item;
+use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\Player;
 
 class CraftingTable extends Solid{
@@ -50,6 +52,19 @@ class CraftingTable extends Solid{
 	public function onActivate(Item $item, Player $player = null) : bool{
 		if($player instanceof Player){
 			$player->setCraftingGrid(new CraftingGrid($player, CraftingGrid::SIZE_BIG));
+
+			if($player->getProtocol() >= ProtocolInfo::PROTOCOL_16) {
+			    $inventory = $player->getInventory();
+			    $player->addWindow($inventory);
+
+			    $pk = new ContainerOpenPacket();
+			    $pk->windowId = $player->getWindowId($inventory);
+			    $pk->type = 1;
+			    $pk->x = (int)$this->getX();
+			    $pk->y = (int)$this->getY();
+			    $pk->z = (int)$this->getZ();
+			    $player->dataPacket($pk);
+            }
 		}
 
 		return true;

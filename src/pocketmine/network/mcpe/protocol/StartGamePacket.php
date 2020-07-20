@@ -260,9 +260,6 @@ class StartGamePacket extends DataPacket{
 		$this->putVarInt($this->time);
 
 		$this->putVarInt($this->eduEditionOffer);
-        if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
-            $this->putBool(false); // TODO - Add property (edu mode)
-        }
 		$this->putBool($this->hasEduFeaturesEnabled);
         if($this->protocol >= ProtocolInfo::PROTOCOL_16) {
             $this->putString(""); // TODO - Add property (edu product id)
@@ -274,9 +271,9 @@ class StartGamePacket extends DataPacket{
 		$this->putBool($this->isMultiplayerGame);
 		$this->putBool($this->hasLANBroadcast);
 		$this->putVarInt($this->xboxLiveBroadcastMode);
-		if($this->protocol < ProtocolInfo::PROTOCOL_16) {
+//		if($this->protocol < ProtocolInfo::PROTOCOL_16) {
             $this->putVarInt($this->platformBroadcastMode);
-        }
+//        }
 		$this->putBool($this->commandsEnabled);
 		$this->putBool($this->isTexturePacksRequired);
 		$this->putGameRules($this->gameRules);

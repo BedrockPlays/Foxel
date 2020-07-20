@@ -94,7 +94,8 @@ class PlayerListPacket extends DataPacket{
 		}
 		if($this->protocol > ProtocolInfo::PROTOCOL_1_14 && $this->type === self::TYPE_ADD) {
 			foreach($this->entries as $entry){
-				$this->putBool($entry->skinData->isVerified());
+//				$this->putBool($entry->skinData->isVerified());
+                $this->putBool(true);
 			}
 		}
 	}

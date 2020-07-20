@@ -2986,8 +2986,9 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	public function handleContainerClose(ContainerClosePacket $packet) : bool{
 		if(!$this->spawned or $packet->windowId === 0){
 		    if($packet->windowId === 0 and isset($this->windowIndex[$packet->windowId]) and $this->getProtocol() >= ProtocolInfo::PROTOCOL_16) {
-		        $this->windowIndex[$packet->windowId]->onClose($this);
+		        $this->doCloseInventory();
             }
+
 			return true;
 		}
 
@@ -3538,7 +3539,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	 * @param TextContainer|string $message Message to be broadcasted
 	 * @param string               $reason Reason showed in console
 	 */
-	final public function close($message = "", string $reason = "generic reason", bool $notify = true) : void{
+	final public function close($message = "", string $reason = "generic reason", bool $notify = true): void {
 		if($this->isConnected() and !$this->closed){
 			if($notify and strlen($reason) > 0){
 				$pk = new DisconnectPacket();
@@ -3868,15 +3869,12 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	 * @return void
 	 */
 	protected function addDefaultWindows(){
-		$this->addWindow($this->getInventory(), ContainerIds::INVENTORY, true);
+        $this->cursorInventory = new PlayerCursorInventory($this);
+        $this->craftingGrid = new CraftingGrid($this, CraftingGrid::SIZE_SMALL);
 
-		$this->addWindow($this->getArmorInventory(), ContainerIds::ARMOR, true);
-
-		$this->cursorInventory = new PlayerCursorInventory($this);
-		$this->addWindow($this->cursorInventory, ContainerIds::UI, true);
-
-		$this->craftingGrid = new CraftingGrid($this, CraftingGrid::SIZE_SMALL);
-
+        $this->addWindow($this->getInventory(), ContainerIds::INVENTORY, true);
+        $this->addWindow($this->getArmorInventory(), ContainerIds::ARMOR, true);
+        $this->addWindow($this->cursorInventory, ContainerIds::UI, true);
 		//TODO: more windows
 	}
 
@@ -3905,6 +3903,10 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 				$inventory->clearAll();
 			}
+
+			if($this->getProtocol() >= ProtocolInfo::PROTOCOL_16) {
+			    $inventory->onClose($this);
+            }
 		}
 
 		if($this->craftingGrid->getGridWidth() > CraftingGrid::SIZE_SMALL){

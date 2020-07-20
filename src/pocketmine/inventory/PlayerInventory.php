@@ -223,7 +223,7 @@ class PlayerInventory extends BaseInventory{
      * @param Player $who
      */
 	public function onOpen(Player $who): void {
-	    if($who->getProtocol() >= ProtocolInfo::PROTOCOL_16) {
+	    if($who->getProtocol() >= ProtocolInfo::PROTOCOL_16 && $who->getCraftingGrid()->getGridWidth() == CraftingGrid::SIZE_SMALL) {
             $pk = new ContainerOpenPacket();
             $pk->protocol = $who->getProtocol();
 
