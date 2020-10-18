@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace pocketmine\tile;
 
+use pocketmine\inventory\BrewingInventoryEventProcessor;
 use pocketmine\inventory\BrewingInventory;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\InventoryEventProcessor;
@@ -17,6 +18,7 @@ use pocketmine\nbt\tag\CompoundTag;
  * @package pocketmine\tile
  */
 class BrewingStand extends Spawnable implements InventoryHolder, Container, Nameable {
+
     use NameableTrait {
         addAdditionalSpawnData as addNameSpawnData;
     }
@@ -37,19 +39,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
     protected function readSaveData(CompoundTag $nbt): void {
         $this->inventory = new BrewingInventory($this);
 
-        $this->inventory->setEventProcessor(new class($this) implements InventoryEventProcessor {
-            /** @var BrewingStand */
-            private $brewing;
-
-            public function __construct(BrewingStand $brewing){
-                $this->brewing = $brewing;
-            }
-
-            public function onSlotChange(Inventory $inventory, int $slot, Item $oldItem, Item $newItem) : ?Item{
-                $this->brewing->scheduleUpdate();
-                return $newItem;
-            }
-        });
+        $this->inventory->setEventProcessor(new BrewingInventoryEventProcessor($this));
         // TODO
     }
 
@@ -91,4 +81,5 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
         $this->brewTime--;
         return true;
     }
+
 }
